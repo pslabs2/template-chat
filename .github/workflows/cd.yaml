@@ -1,0 +1,35 @@
+name: CD
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+    tags: ["v*"]
+
+permissions:
+  contents: read
+
+jobs:
+  backend:
+    uses: pslabs2/workflows/.github/workflows/cd-python.yaml@main
+    permissions:
+      contents: read
+      packages: write
+      id-token: write
+      attestations: write
+    with:
+      working-directory: backend
+      python-version-file: .python-version
+      image-name: ${{ github.event.repository.name }}-backend
+
+  frontend:
+    uses: pslabs2/workflows/.github/workflows/cd-node.yaml@main
+    permissions:
+      contents: read
+      packages: write
+      id-token: write
+      attestations: write
+    with:
+      working-directory: frontend
+      node-version: "22"
+      image-name: ${{ github.event.repository.name }}-frontend

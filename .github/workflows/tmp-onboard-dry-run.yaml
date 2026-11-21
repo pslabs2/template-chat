@@ -1,0 +1,20 @@
+name: tmp onboard dry run
+on:
+  push:
+    branches: [tmp/onboard-dry-run]
+permissions:
+  contents: read
+jobs:
+  onboard:
+    uses: pslabs2/workflows/.github/workflows/onboard-app.yaml@main
+    permissions:
+      contents: read
+      packages: read
+    with:
+      dry-run: true
+      image-tag: sha-987d428
+      values: |
+        components:
+          backend:
+            env:
+              CORS_ORIGINS: http://template-chat.localhost

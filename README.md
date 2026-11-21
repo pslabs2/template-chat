@@ -1,4 +1,4 @@
-# new-chat
+# template-chat
 
 A modern chatbot: FastAPI backend (`backend/`) + Vite/React frontend (`frontend/`)
 with token streaming over Server-Sent Events.

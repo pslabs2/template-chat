@@ -1,0 +1,26 @@
+# Defaults for running this app on the cluster, in the format of the generic chart
+# pslabs2/infra/charts/app (see its values.yaml for every option).
+#
+# The onboard-app workflow (pslabs2/workflows) copies this file to
+# apps/<repo>/values.yaml in pslabs2/infra the first time the app is onboarded,
+# filling in each component's image (ghcr.io/<owner>/<repo>-<component>) and the
+# ingress host. After that, the copy in pslabs2/infra is what gets deployed: edit it
+# there. Components are named after the image directories built by cd.yaml.
+components:
+  backend:
+    port: 8000
+    probe:
+      path: /api/health
+  frontend:
+    port: 8080
+    probe:
+      path: /
+    service:
+      port: 80
+    # The root filesystem is read-only; nginx writes its rendered config and temp files here.
+    writablePaths:
+      - /tmp
+      - /var/cache/nginx
+      - /etc/nginx/conf.d
+    ingress:
+      enabled: true

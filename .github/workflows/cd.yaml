@@ -5,6 +5,7 @@ on:
   push:
     branches: [main]
     tags: ["v*"]
+  workflow_dispatch:
 
 permissions:
   contents: read
@@ -33,3 +34,17 @@ jobs:
       working-directory: frontend
       node-version: "22"
       image-name: ${{ github.event.repository.name }}-frontend
+
+  # Adds the app to pslabs2/infra (Argo CD) once its images exist; a no-op once onboarded.
+  onboard:
+    if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
+    needs: [backend, frontend]
+    uses: pslabs2/workflows/.github/workflows/onboard-app.yaml@main
+    permissions:
+      contents: read
+      packages: read
+    with:
+      app-client-id: ${{ vars.INFRA_APP_CLIENT_ID }}
+    secrets:
+      app-private-key: ${{ secrets.INFRA_APP_PRIVATE_KEY }}
+      infra-token: ${{ secrets.INFRA_TOKEN }}

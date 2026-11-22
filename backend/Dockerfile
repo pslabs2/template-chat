@@ -21,6 +21,7 @@ COPY . .
 RUN --mount=type=cache,target=/root/.cache/uv \
     uv sync --locked
 
-USER nobody
+# Numeric, so Kubernetes can verify runAsNonRoot (65534 = nobody).
+USER 65534:65534
 EXPOSE 8000
 CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]

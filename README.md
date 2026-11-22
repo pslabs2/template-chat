@@ -22,11 +22,20 @@ Open http://localhost:5173. The backend uses a placeholder echo provider — see
 publishes them to GHCR on pushes to `main` and `v*` tags:
 
 - `ghcr.io/<owner>/<repo>-backend` – FastAPI on port 8000
-- `ghcr.io/<owner>/<repo>-frontend` – nginx on port 80 serving the static build and proxying
-  `/api` to `BACKEND_URL` (default `http://backend:8000`)
+- `ghcr.io/<owner>/<repo>-frontend` – unprivileged nginx on port 8080 serving the static build
+  and proxying `/api` to `BACKEND_URL` (default `http://backend:8000`)
 
 ```bash
 docker network create chat
 docker run -d --name backend --network chat ghcr.io/<owner>/<repo>-backend
-docker run -d --network chat -p 8080:80 ghcr.io/<owner>/<repo>-frontend
+docker run -d --network chat -p 8080:8080 ghcr.io/<owner>/<repo>-frontend
 ```
+
+## Deployment
+
+`.github/workflows/onboarding.yaml` runs after CD succeeds on `main` (or manually) and
+onboards the app onto [`pslabs2/infra`](https://github.com/pslabs2/infra)'s Argo CD app of
+apps, using `deploy/values.yaml` and the ingress host `<repo>.pukarsubedi.com`. It needs the
+`INFRA_APP_CLIENT_ID` variable and `INFRA_APP_PRIVATE_KEY` secret (a GitHub App with
+contents write on infra), or an `INFRA_TOKEN` secret. It only runs once; afterwards edit
+`apps/<repo>/values.yaml` in the infra repo.

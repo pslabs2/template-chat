@@ -1,0 +1,48 @@
+name: Onboarding
+
+# Adds this app to the infra repo's Argo CD app of apps (apps/<repo>/values.yaml and
+# clusters/homelab/<repo>.yaml) once CD has published the images for main. Later runs
+# are no-ops; the infra repo is the source of truth after onboarding.
+
+on:
+  workflow_run:
+    workflows: [CD]
+    types: [completed]
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      dry-run:
+        description: Generate and validate the files, but don't push
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+
+jobs:
+  image-tag:
+    if: github.event_name == 'workflow_dispatch' || (github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.event == 'push')
+    runs-on: ubuntu-latest
+    outputs:
+      tag: ${{ steps.tag.outputs.tag }}
+    steps:
+      - id: tag
+        env:
+          # The commit CD built, which may be behind main for workflow_run events.
+          SHA: ${{ github.event.workflow_run.head_sha || github.sha }}
+        run: echo "tag=sha-${SHA::7}" >> "$GITHUB_OUTPUT"
+
+  onboard:
+    needs: image-tag
+    uses: pslabs2/workflows/.github/workflows/onboard-app.yaml@main
+    permissions:
+      contents: read
+      packages: read # to resolve image digests
+    with:
+      image-tag: ${{ needs.image-tag.outputs.tag }}
+      ingress-host: ${{ github.event.repository.name }}.pukarsubedi.com
+      dry-run: ${{ inputs.dry-run || false }}
+      app-client-id: ${{ vars.INFRA_APP_CLIENT_ID }}
+    secrets:
+      app-private-key: ${{ secrets.INFRA_APP_PRIVATE_KEY }}
+      infra-token: ${{ secrets.INFRA_TOKEN }} # used if no GitHub App is configured

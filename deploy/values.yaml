@@ -1,0 +1,19 @@
+# Chart values for pslabs2/infra charts/app, used once by .github/workflows/onboarding.yaml
+# to create apps/<repo>/values.yaml in the infra repo. Image repositories, tags, digests and
+# the ingress host are filled in by the onboard-app workflow. After onboarding, edit the copy
+# in the infra repo instead.
+components:
+  backend:
+    port: 8000
+    probe:
+      path: /api/health
+  frontend:
+    port: 8080
+    probe:
+      path: /
+    # The root filesystem is read-only; nginx renders its config into conf.d at startup.
+    writablePaths:
+      - /tmp
+      - /etc/nginx/conf.d
+    ingress:
+      enabled: true

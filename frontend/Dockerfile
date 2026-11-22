@@ -8,8 +8,9 @@ RUN --mount=type=cache,target=/root/.npm npm ci
 COPY . .
 RUN npm run build
 
-FROM nginx:1-alpine
+# Runs as a non-root user (101) on 8080, so it works under runAsNonRoot.
+FROM nginxinc/nginx-unprivileged:1-alpine
 ENV BACKEND_URL=http://backend:8000
 COPY nginx.conf.template /etc/nginx/templates/default.conf.template
 COPY --from=build /app/dist /usr/share/nginx/html
-EXPOSE 80
+EXPOSE 8080
